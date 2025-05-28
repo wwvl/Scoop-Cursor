@@ -1,0 +1,59 @@
+## 0.47.9
+https://downloads.cursor.com/production/b6fb41b5f36bda05cab7109606e7404a65d1ff32/win32/x64/user-setup/CursorUserSetup-x64-0.47.9.exe
+92db71d435ae73928f3b2ed5e7b6758721e6ac7096ed5523b097ed4c12e45fe2
+https://downloads.cursor.com/production/b6fb41b5f36bda05cab7109606e7404a65d1ff32/win32/arm64/user-setup/CursorUserSetup-arm64-0.47.9.exe
+2a1f0441dfecfdc18fc3cf467f0f262e9e1d8b99bb017d73625a086bc436add3
+
+## 0.47.8
+https://downloads.cursor.com/production/82ef0f61c01d079d1b7e5ab04d88499d5af500e3/win32/x64/user-setup/CursorUserSetup-x64-0.47.8.exe
+1544031a5e4f74fb362f7b212b23c4f878f6648108678655b6727636ed3b3f15
+https://downloads.cursor.com/production/82ef0f61c01d079d1b7e5ab04d88499d5af500e3/win32/arm64/user-setup/CursorUserSetup-arm64-0.47.8.exe
+fce31dcc34bd997b039938281b372d434465811f2bf7a1a5470cd491943ca90c
+
+## 0.47.7
+https://downloads.cursor.com/production/33ec0dad159bc0ad620f6bbda539efe90c39748d/win32/x64/user-setup/CursorUserSetup-x64-0.47.7.exe
+5df931ed2119403e227b3e6468a8ce82ea4f8edf7b1f8234674ec3d5127dba93
+https://downloads.cursor.com/production/33ec0dad159bc0ad620f6bbda539efe90c39748d/win32/arm64/user-setup/CursorUserSetup-arm64-0.47.7.exe
+a10d7a20676c5a58aef6265f83f4e2a7c4d84c455e3f0f02a0c06e91a340f764
+
+## 0.47.6
+https://downloads.cursor.com/production/6a1a6fbc55483584e7022f491c8a167ccac86f22/win32/x64/user-setup/CursorUserSetup-x64-0.47.6.exe
+d09615880ba0c9bb03a7d5d9d30a0e6cec9255c543a2a4aaed6b0a3ced9824fb
+https://downloads.cursor.com/production/6a1a6fbc55483584e7022f491c8a167ccac86f22/win32/arm64/user-setup/CursorUserSetup-arm64-0.47.6.exe
+8435d6aca53a366b901430c3df93bd65283ae1fc3e45cc5f5386552ee8780dd0
+
+## 0.47.5
+https://downloads.cursor.com/production/53d6da1322f934a1058e7569ee0847b24879d18c/win32/x64/user-setup/CursorUserSetup-x64-0.47.5.exe
+5df2c647c4b4a195f27b61ca657b483bd8bf561053ecac2878d63b3d777b6d83
+https://downloads.cursor.com/production/53d6da1322f934a1058e7569ee0847b24879d18c/win32/arm64/user-setup/CursorUserSetup-arm64-0.47.5.exe
+b1fc1ed2535e187e2533595bc2b8fbfaaa0b61ce118b02aad586f1f3613bc28b
+
+## 0.47.4
+https://downloads.cursor.com/production/8f8a2000673d2c48f6cac5eea2f3f9f2ed5e4ec2/win32/x64/user-setup/CursorUserSetup-x64-0.47.4.exe
+bc287c402d38cc8b58cf0482fb97934b66f928e76301ac904cc4752a3068d58a
+https://downloads.cursor.com/production/8f8a2000673d2c48f6cac5eea2f3f9f2ed5e4ec2/win32/arm64/user-setup/CursorUserSetup-arm64-0.47.4.exe
+68fb83263083b3eaddea118c1b95e1be2681fcdc7794aa8c1e1764c97dad83a4
+
+## 0.47.3
+https://downloads.cursor.com/production/dab1538cd064aebd4292f9de48b05022c974aff6/win32/x64/user-setup/CursorUserSetup-x64-0.47.3.exe
+d28145d43ed5b1e38493d0df4c118337aa05190ad9c693df2be674c9a0d61516
+https://downloads.cursor.com/production/dab1538cd064aebd4292f9de48b05022c974aff6/win32/arm64/user-setup/CursorUserSetup-arm64-0.47.3.exe
+35f917d2d765738bb8aef52ba9737936ff5ace3477cfb1f86e78cead0e450888
+
+## 0.47.2
+https://downloads.cursor.com/production/bed609aa4a57e9d82664006f152d3f77589eed10/win32/x64/user-setup/CursorUserSetup-x64-0.47.2.exe
+3a64ff263160a45403b636c033ff30c1b68653e54bef93a45ecf80645314bfdc
+https://downloads.cursor.com/production/bed609aa4a57e9d82664006f152d3f77589eed10/win32/arm64/user-setup/CursorUserSetup-arm64-0.47.2.exe
+3fbbb3411f8c13ab2bfc9421eb4f5544523728d027beb6b1ab2dfb8b7de23481
+
+## 0.47.1
+https://downloads.cursor.com/production/aafb3fe1326c939656bd06f325a9e17679aeec7f/win32/x64/user-setup/CursorUserSetup-x64-0.47.1.exe
+2e2f76239de4b9a0351024833d6407c32ec0d26f64287ce9e75519a6557ccd02
+https://downloads.cursor.com/production/aafb3fe1326c939656bd06f325a9e17679aeec7f/win32/arm64/user-setup/CursorUserSetup-arm64-0.47.1.exe
+0f9f2b9e2ba9e334a89c430e851849ebea31afab9c76e7db8356801ff8528293
+
+## 0.47.0
+https://downloads.cursor.com/production/4a602340d7b014d700647120bae9079607f2ae9b/win32/x64/user-setup/CursorUserSetup-x64-0.47.0.exe
+495850a94a32e287de8f8fb70e55eb767a42676d6e2c1c70519ebf5daaa20450
+https://downloads.cursor.com/production/4a602340d7b014d700647120bae9079607f2ae9b/win32/arm64/user-setup/CursorUserSetup-arm64-0.47.0.exe
+5e050a357140f9de62d140b10e81467cd393949d6989e8a2ab0aaec1d21ae0f5
