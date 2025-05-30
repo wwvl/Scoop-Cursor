@@ -18,6 +18,11 @@ jobs:
 
       - name: Install Scoop
         run: |
+          $env:SCOOP = Join-Path $env:USERPROFILE 'SCOOP'
+          $env:SCOOP_HOME = Join-Path $env:SCOOP 'apps\scoop\current'
+          $env:SCOOP_GLOBAL = Join-Path $env:SystemDrive 'SCOOP'
+          $BINARIES_FOLDER = Join-Path $env:SCOOP_HOME 'bin'
+
           Write-Host 'Installing scoop' -ForegroundColor Green
           $f = Join-Path $env:USERPROFILE 'install.ps1'
           Invoke-WebRequest 'https://raw.githubusercontent.com/ScoopInstaller/Install/master/install.ps1' -UseBasicParsing -OutFile $f
