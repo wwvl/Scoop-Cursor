@@ -44,5 +44,5 @@ jobs:
             git commit -m "chore: add cursor ${version}.${build}"
             git push origin "${GITHUB_REF#refs/heads/}"
           else
-            echo "No changes to commit." 
+            echo "No changes to commit."
           fi
