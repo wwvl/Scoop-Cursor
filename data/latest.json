@@ -1,0 +1,14 @@
+{
+    "version": "0.50.7",
+    "build": "96e5b01ca25f8fbd4c4c10bc69b15f6228c80771",
+    "releases": {
+        "x64": {
+            "url": "https://downloads.cursor.com/production/02270c8441bdc4b2fdbc30e6f470a589ec78d60d/win32/x64/user-setup/CursorUserSetup-x64-0.50.7.exe",
+            "sha256": "2555101ef4e8581976bfd64a0abb7b9de01f99e100ba5dc3d15acb06cafad44a"
+        },
+        "arm64": {
+            "url": "https://downloads.cursor.com/production/02270c8441bdc4b2fdbc30e6f470a589ec78d60d/win32/arm64/user-setup/CursorUserSetup-arm64-0.50.7.exe",
+            "sha256": "02cd1d77845038e19f8e1fd95a5112468fb807fda18f5cb32fcd673f7f82da92"
+        }
+    }
+}
