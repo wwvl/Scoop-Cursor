@@ -16,11 +16,10 @@ jobs:
       #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       #     SKIP_UPDATED: 1
 
-      - name: Install Scoop
+      - name: Excavate
         run: |
           $env:SCOOP = Join-Path $env:USERPROFILE 'SCOOP'
           $env:SCOOP_HOME = Join-Path $env:SCOOP 'apps\scoop\current'
-          $env:SCOOP_GLOBAL = Join-Path $env:SystemDrive 'SCOOP'
           $BINARIES_FOLDER = Join-Path $env:SCOOP_HOME 'bin'
 
           Write-Host 'Installing scoop' -ForegroundColor Green
@@ -46,8 +45,6 @@ jobs:
           # Dot sourcing needs to be done on highest scope possible to propagate into lower scopes
           Get-ChildItem (Join-Path $env:SCOOP_HOME 'lib') '*.ps1' | ForEach-Object { . $_.FullName }
 
-      - name: Scheduled
-        run: |
           Write-Host 'Scheduled initialized' -ForegroundColor Green
           $env:SCOOP_GH_TOKEN = $env:GITHUB_TOKEN
 
