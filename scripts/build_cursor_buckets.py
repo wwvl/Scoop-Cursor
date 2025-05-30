@@ -43,6 +43,7 @@ def save_json(path: str, data: Any) -> None:
     try:
         with open(path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=4, ensure_ascii=False)
+            f.write("\n")  # 保证文件末尾有换行符
     except Exception as e:
         print(f"[ERROR] Failed to save {path}: {e}")
 
