@@ -10,8 +10,50 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@main
-      - name: Excavate
-        uses: ScoopInstaller/GithubActions@main
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SKIP_UPDATED: 1
+      # - name: Excavate
+      #   uses: ScoopInstaller/GithubActions@main
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #     SKIP_UPDATED: 1
+
+      - name: Install Scoop
+        run: |
+          Write-Host 'Installing scoop' -ForegroundColor Green
+          $f = Join-Path $env:USERPROFILE 'install.ps1'
+          Invoke-WebRequest 'https://raw.githubusercontent.com/ScoopInstaller/Install/master/install.ps1' -UseBasicParsing -OutFile $f
+          & $f -RunAsAdmin
+
+          Write-Host 'Initializing needed configuration' -ForegroundColor Green
+          scoop --version
+          git --version
+
+          @('cache', 'buckets', 'modules', 'persist', 'shims', 'workspace') | ForEach-Object { New-Item (Join-Path $env:SCOOP $_) -Force -ItemType Directory | Out-Null }
+
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git remote 'set-url' --push origin "https://${env:GITHUB_ACTOR}:$env:GITHUB_TOKEN@github.com/$env:GITHUB_REPOSITORY.git"
+
+          scoop config USE_EXTERNAL_7ZIP $true
+          scoop install 'hub' -g
+
+          Write-Host 'Importing all modules' -ForegroundColor Green
+          # Load all scoop's modules.
+          # Dot sourcing needs to be done on highest scope possible to propagate into lower scopes
+          Get-ChildItem (Join-Path $env:SCOOP_HOME 'lib') '*.ps1' | ForEach-Object { . $_.FullName }
+
+      - name: Scheduled
+        run: |
+          Write-Host 'Scheduled initialized' -ForegroundColor Green
+          $env:SCOOP_GH_TOKEN = $env:GITHUB_TOKEN
+
+          $params = @{
+              'Dir'          = "$env:GITHUB_WORKSPACE/bucket"
+              'Upstream'     = "wwvl/Scoop-Cursor:main"
+              'OriginBranch' = 'main'
+              'Push'         = $true
+              'SkipUpdated'  = $true
+          }
+
+          & (Join-Path $BINARIES_FOLDER 'auto-pr.ps1') @params
+
+          Write-Host 'Scheduled finished' -ForegroundColor Green
