@@ -1,0 +1,48 @@
+name: Update Cursor
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 */4 * * *"
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    permissions:
+      # Give the default GITHUB_TOKEN write permission to commit and push the
+      # added or changed files to the repository.
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: "Set up Python"
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: "pyproject.toml"
+
+      - name: Install dependencies
+        run: uv sync --locked
+
+      - name: Run update script
+        run: uv run scripts/update_cursor_bucket.py
+
+      - name: Commit and push changes
+        if: always()
+        run: |
+          if [[ -n "$(git status --porcelain)" ]]; then
+            version=$(jq -r .version data/latest.json)
+            build=$(jq -r .build data/latest.json)
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add .
+            git commit -m "chore: add cursor ${version}.${build}"
+            git push origin "${GITHUB_REF#refs/heads/}"
+          else
+            echo "No changes to commit." 
+          fi
