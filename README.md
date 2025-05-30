@@ -9,8 +9,8 @@ A [Scoop](https://scoop.sh) bucket for [Cursor AI Code Editor](https://www.curso
 After manifests have been committed and pushed, run the following:
 
 ```pwsh
-scoop bucket add Scoop-Cursor https://github.com/wwvl/Scoop-Cursor
-scoop install Scoop-Cursor/<cursor-version>
+scoop bucket add sc https://github.com/wwvl/Scoop-Cursor
+scoop install sc/<cursor-version>
 ```
 
 ## How do I contribute new manifests?
