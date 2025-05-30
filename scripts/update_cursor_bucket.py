@@ -8,20 +8,27 @@ from pathlib import Path
 
 # Define paths for data and bucket directories, and template/metadata files
 # These are relative to the script's parent directory
-
+# 定义 data 和 bucket 目录以及模板/元数据文件的路径，这些路径是相对于脚本父目录的
 data_dir = Path(__file__).parent.parent / "data"
 bucket_dir = Path(__file__).parent.parent / "bucket"
 template_path = bucket_dir / "template" / "cursor.template"
 latest_json_path = data_dir / "latest.json"
 
-# API endpoint to fetch the latest version info
 API_URL = "https://api2.cursor.sh/updates/api/update/win32-x64/cursor/0.0.0/"
-
-# Download a file from the given URL and calculate its sha256 hash
-# Returns the sha256 hex digest
 
 
 def download_and_sha256(url):
+    """
+    Download a file from the given URL and calculate its sha256 hash.
+    从给定的 URL 下载文件并计算其 sha256 哈希值。
+
+    Args:
+        url (str): The URL to download.
+        url (str): 要下载的 URL。
+    Returns:
+        str: The sha256 hex digest.
+        str: sha256 的十六进制摘要。
+    """
     with requests.get(url, stream=True) as r:
         r.raise_for_status()
         with tempfile.NamedTemporaryFile(delete=False) as f:
@@ -36,15 +43,22 @@ def download_and_sha256(url):
     return sha256.hexdigest()
 
 
-# Query the API to get the latest version and build hash
-# Returns (version, build_hash)
 def get_latest_info():
+    """
+    Query the API to get the latest version and build hash.
+    查询 API 以获取最新版本和构建哈希。
+
+    Returns:
+        tuple: (version, build_hash)
+        tuple: (版本号，构建哈希)
+    """
     resp = requests.get(API_URL)
     resp.raise_for_status()
     data = resp.json()
     version = data["version"]
     url = data["url"]
     # Extract build hash from the download URL (after 'production/')
+    # 从下载 URL（'production/' 之后）提取构建哈希
     m = re.search(r"production/([0-9a-f]{40})/", url)
     if not m:
         raise Exception("Failed to extract build hash from url")
@@ -52,14 +66,35 @@ def get_latest_info():
     return version, build
 
 
-# Get the major.minor part of a version string, e.g. '0.50.7' -> '0.50'
 def get_major_minor(version):
+    """
+    Get the major.minor part of a version string, e.g. '0.50.7' -> '0.50'.
+    获取版本字符串的主次版本号部分，例如 '0.50.7' -> '0.50'。
+
+    Args:
+        version (str): The version string.
+        version (str): 版本字符串。
+    Returns:
+        str: The major.minor part.
+        str: 主次版本号部分。
+    """
     parts = version.split(".")
     return f"{parts[0]}.{parts[1]}"
 
 
-# Update or create the data/{major.minor}.json file with the new version info
 def update_data_json(version, build, x64_url, x64_sha, arm64_url, arm64_sha):
+    """
+    Update or create the data/{major.minor}.json file with the new version info.
+    使用新版本信息更新或创建 data/{major.minor}.json 文件。
+
+    Args:
+        version (str): Version string.
+        build (str): Build hash.
+        x64_url (str): x64 download URL.
+        x64_sha (str): x64 sha256.
+        arm64_url (str): arm64 download URL.
+        arm64_sha (str): arm64 sha256.
+    """
     major_minor = get_major_minor(version)
     data_json_path = data_dir / f"{major_minor}.json"
     if data_json_path.exists():
@@ -87,8 +122,19 @@ def update_data_json(version, build, x64_url, x64_sha, arm64_url, arm64_sha):
     print(f"Updated {data_json_path}")
 
 
-# Update the data/latest.json file with the latest version and build info
 def update_latest_json(version, build, x64_url, x64_sha, arm64_url, arm64_sha):
+    """
+    Update the data/latest.json file with the latest version and build info.
+    用最新的版本和构建信息更新 data/latest.json 文件。
+
+    Args:
+        version (str): Version string.
+        build (str): Build hash.
+        x64_url (str): x64 download URL.
+        x64_sha (str): x64 sha256.
+        arm64_url (str): arm64 download URL.
+        arm64_sha (str): arm64 sha256.
+    """
     latest = {
         "version": version,
         "build": build,
@@ -102,8 +148,19 @@ def update_latest_json(version, build, x64_url, x64_sha, arm64_url, arm64_sha):
     print(f"Updated {latest_json_path}")
 
 
-# Generate a new bucket/cursor-{version}.json file from the template
 def update_bucket(version, build, x64_url, x64_sha, arm64_url, arm64_sha):
+    """
+    Generate a new bucket/cursor-{version}.json file from the template.
+    根据模板生成新的 bucket/cursor-{version}.json 文件。
+
+    Args:
+        version (str): Version string.
+        build (str): Build hash.
+        x64_url (str): x64 download URL.
+        x64_sha (str): x64 sha256.
+        arm64_url (str): arm64 download URL.
+        arm64_sha (str): arm64 sha256.
+    """
     with open(template_path, "r", encoding="utf-8") as f:
         template = json.load(f)
     # Fill in version and download info
@@ -125,10 +182,17 @@ def update_bucket(version, build, x64_url, x64_sha, arm64_url, arm64_sha):
     print(f"Generated {out_path}")
 
 
-# Compare two version strings (e.g. 0.50.7 <= 0.50.8)
-# Returns True if v1 <= v2
 def version_leq(v1, v2):
-    """Return True if v1 <= v2, where v1/v2 are like '0.50.7'"""
+    """
+    Compare two version strings (e.g. 0.50.7 <= 0.50.8).
+    比较两个版本字符串（例如 0.50.7 <= 0.50.8）。
+
+    Args:
+        v1 (str): Version string 1.
+        v2 (str): Version string 2.
+    Returns:
+        bool: True if v1 <= v2.
+    """
 
     def parse(v):
         return [int(x) for x in v.split(".")]
@@ -136,8 +200,11 @@ def version_leq(v1, v2):
     return parse(v1) <= parse(v2)
 
 
-# Main workflow: check for updates, download, update data and bucket
 def main():
+    """
+    Main workflow: check for updates, download, update data and bucket.
+    主流程：检查更新、下载、更新数据和 bucket 文件。
+    """
     # 1. Get latest version and build hash from API
     version, build = get_latest_info()
     print(f"Latest version: {version}, build: {build}")
