@@ -1,0 +1,54 @@
+name: Update SHA256
+
+on:
+  workflow_dispatch:
+    inputs:
+      major_minor:
+        description: "主次版本号（如 0.51）"
+        required: true
+        type: string
+      versions:
+        description: "要更新的版本号（如 0.51.0 0.51.1），空格分隔，留空则全部"
+        required: false
+        type: string
+
+jobs:
+  update-sha256:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: "Set up Python"
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: "pyproject.toml"
+
+      - name: Install dependencies
+        run: uv sync --locked
+
+      - name: Run update-sha256 script
+        run: |
+          ARGS="${{ github.event.inputs.major_minor }}"
+          if [ -n "${{ github.event.inputs.versions }}" ]; then
+            ARGS="$ARGS ${{ github.event.inputs.versions }}"
+          fi
+          echo -e "\033[32m运行参数: $ARGS\033[0m"
+          uv run scripts/update_sha256.py $ARGS
+
+      - name: Commit and push changes
+        if: always()
+        run: |
+          if [[ -n "$(git status --porcelain)" ]]; then
+            major_minor="${{ github.event.inputs.major_minor }}"
+            versions="${{ github.event.inputs.versions }}"
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add .
+            git commit -m "chore: update sha256 for $major_minor $versions"
+            git push origin "${GITHUB_REF#refs/heads/}"
+          else
+            echo -e "\033[32mNo changes to commit.\033[0m"
