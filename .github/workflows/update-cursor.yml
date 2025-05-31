@@ -1,4 +1,4 @@
-name: Update Cursor
+name: Update Cursor and Excavator
 
 on:
   workflow_dispatch:
@@ -6,8 +6,10 @@ on:
     - cron: "0 * * * *" # run hourly
 
 jobs:
-  update:
+  update-cursor:
     runs-on: ubuntu-latest
+    outputs:
+      has_changes: ${{ steps.set_output.outputs.has_changes }}
 
     permissions:
       # Give the default GITHUB_TOKEN write permission to commit and push the
@@ -32,17 +34,73 @@ jobs:
       - name: Run update script
         run: uv run scripts/update_cursor_bucket.py
 
-      - name: Commit and push changes
-        if: always()
+      - name: Set output if changes
+        id: set_output
         run: |
           if [[ -n "$(git status --porcelain)" ]]; then
-            version=$(jq -r .version data/latest.json)
-            build=$(jq -r .build data/latest.json)
-            git config user.name "github-actions[bot]"
-            git config user.email "github-actions[bot]@users.noreply.github.com"
-            git add .
-            git commit -m "chore: add cursor ${version}.${build}"
-            git push origin "${GITHUB_REF#refs/heads/}"
+            echo "has_changes=true" >> $GITHUB_OUTPUT
           else
-            echo "No changes to commit."
+            echo "has_changes=false" >> $GITHUB_OUTPUT
           fi
+
+      - name: Commit and push changes
+        if: steps.set_output.outputs.has_changes == 'true'
+        run: |
+          version=$(jq -r .version data/latest.json)
+          build=$(jq -r .build data/latest.json)
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "chore: add cursor ${version}.${build}"
+          git push origin "${GITHUB_REF#refs/heads/}"
+
+  excavator:
+    needs: update-cursor
+    runs-on: windows-latest
+    if: ${{ needs.update-cursor.outputs.has_changes == 'true' }}
+    steps:
+      - uses: actions/checkout@main
+
+      - name: Excavate
+        run: |
+          $env:SCOOP = Join-Path $env:USERPROFILE 'SCOOP'
+          $env:SCOOP_HOME = Join-Path $env:SCOOP 'apps\scoop\current'
+          $BINARIES_FOLDER = Join-Path $env:SCOOP_HOME 'bin'
+
+          Write-Host 'Installing scoop' -ForegroundColor Green
+          $f = Join-Path $env:USERPROFILE 'install.ps1'
+          Invoke-WebRequest 'https://raw.githubusercontent.com/ScoopInstaller/Install/master/install.ps1' -UseBasicParsing -OutFile $f
+          & $f -RunAsAdmin
+
+          Write-Host 'Initializing needed configuration' -ForegroundColor Green
+          scoop --version
+          git --version
+
+          @('cache', 'buckets', 'modules', 'persist', 'shims', 'workspace') | ForEach-Object { New-Item (Join-Path $env:SCOOP $_) -Force -ItemType Directory | Out-Null }
+
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git remote 'set-url' --push origin "https://${env:GITHUB_ACTOR}:$env:GITHUB_TOKEN@github.com/$env:GITHUB_REPOSITORY.git"
+
+          scoop config USE_EXTERNAL_7ZIP $true
+          scoop install 'hub' -g
+
+          Write-Host 'Importing all modules' -ForegroundColor Green
+          # Load all scoop's modules.
+          # Dot sourcing needs to be done on highest scope possible to propagate into lower scopes
+          Get-ChildItem (Join-Path $env:SCOOP_HOME 'lib') '*.ps1' | ForEach-Object { . $_.FullName }
+
+          Write-Host 'Scheduled initialized' -ForegroundColor Green
+          $env:SCOOP_GH_TOKEN = $env:GITHUB_TOKEN
+
+          $params = @{
+              'Dir'          = "$env:GITHUB_WORKSPACE/bucket"
+              'Upstream'     = "wwvl/Scoop-Cursor:main"
+              'OriginBranch' = 'main'
+              'Push'         = $true
+              'SkipUpdated'  = $true
+          }
+
+          & (Join-Path $BINARIES_FOLDER 'auto-pr.ps1') @params
+
+          Write-Host 'Scheduled finished' -ForegroundColor Green
