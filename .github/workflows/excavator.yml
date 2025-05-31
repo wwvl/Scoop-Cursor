@@ -1,12 +1,63 @@
+name: Excavator
+
 on:
   workflow_dispatch:
   schedule:
-    - cron: '20 * * * *' # run hourly at 20 minutes past the hour
-name: Excavator
+    - cron: "0 * * * *" # run hourly
+
 jobs:
-  excavate:
-    name: Excavate
+  update-cursor:
+    runs-on: ubuntu-latest
+    outputs:
+      has_changes: ${{ steps.set_output.outputs.has_changes }}
+
+    permissions:
+      # Give the default GITHUB_TOKEN write permission to commit and push the
+      # added or changed files to the repository.
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: "Set up Python"
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: "pyproject.toml"
+
+      - name: Install dependencies
+        run: uv sync --locked
+
+      - name: Run update script
+        run: uv run scripts/update_cursor_bucket.py
+
+      - name: Set output if changes
+        id: set_output
+        run: |
+          if [[ -n "$(git status --porcelain)" ]]; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit and push changes
+        if: steps.set_output.outputs.has_changes == 'true'
+        run: |
+          version=$(jq -r .version data/latest.json)
+          build=$(jq -r .build data/latest.json)
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "chore: add cursor ${version}.${build}"
+          git push origin "${GITHUB_REF#refs/heads/}"
+
+  excavator:
+    needs: update-cursor
     runs-on: windows-latest
+    if: ${{ needs.update-cursor.outputs.has_changes == 'true' }}
     steps:
       - uses: actions/checkout@main
       # - name: Excavate
