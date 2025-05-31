@@ -24,10 +24,8 @@ def download_and_sha256(url):
 
     Args:
         url (str): The URL to download.
-        url (str): 要下载的 URL。
     Returns:
         str: The sha256 hex digest.
-        str: sha256 的十六进制摘要。
     """
     with requests.get(url, stream=True) as r:
         r.raise_for_status()
@@ -50,7 +48,6 @@ def get_latest_info():
 
     Returns:
         tuple: (version, build_hash)
-        tuple: (版本号，构建哈希)
     """
     resp = requests.get(API_URL)
     resp.raise_for_status()
@@ -69,14 +66,11 @@ def get_latest_info():
 def get_major_minor(version):
     """
     Get the major.minor part of a version string, e.g. '0.50.7' -> '0.50'.
-    获取版本字符串的主次版本号部分，例如 '0.50.7' -> '0.50'。
 
     Args:
         version (str): The version string.
-        version (str): 版本字符串。
     Returns:
         str: The major.minor part.
-        str: 主次版本号部分。
     """
     parts = version.split(".")
     return f"{parts[0]}.{parts[1]}"
@@ -85,7 +79,6 @@ def get_major_minor(version):
 def update_data_json(version, build, x64_url, x64_sha, arm64_url, arm64_sha):
     """
     Update or create the data/{major.minor}.json file with the new version info.
-    使用新版本信息更新或创建 data/{major.minor}.json 文件。
 
     Args:
         version (str): Version string.
@@ -119,6 +112,7 @@ def update_data_json(version, build, x64_url, x64_sha, arm64_url, arm64_sha):
     sorted_data = {k: v for k, v in sorted_items}
     with open(data_json_path, "w", encoding="utf-8") as f:
         json.dump(sorted_data, f, indent=4, ensure_ascii=False)
+        f.write("\n")  # 保证文件末尾有换行符
     print(f"Updated {data_json_path}")
 
 
@@ -145,6 +139,7 @@ def update_latest_json(version, build, x64_url, x64_sha, arm64_url, arm64_sha):
     }
     with open(latest_json_path, "w", encoding="utf-8") as f:
         json.dump(latest, f, indent=4, ensure_ascii=False)
+        f.write("\n")  # 保证文件末尾有换行符
     print(f"Updated {latest_json_path}")
 
 
@@ -179,6 +174,7 @@ def update_bucket(version, build, x64_url, x64_sha, arm64_url, arm64_sha):
     out_path = bucket_dir / f"cursor-{version}.json"
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(template, f, indent=4, ensure_ascii=False)
+        f.write("\n")  # 保证文件末尾有换行符
     print(f"Generated {out_path}")
 
 
