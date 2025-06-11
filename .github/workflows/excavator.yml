@@ -30,8 +30,7 @@ jobs:
           echo -e "\033[32mRemote version: $remote_version, commit: $remote_commit\033[0m"
           echo -e "\033[32mLocal version: $local_version\033[0m"
 
-          # if [ "$(printf "%s\n%s\n" "$remote_version" "$local_version" | sort -V | tail -n1)" = "$remote_version" ] && [ "$remote_version" !=
-          "$local_version" ]; then
+          # if [ "$(printf "%s\n%s\n" "$remote_version" "$local_version" | sort -V | tail -n1)" = "$remote_version" ] && [ "$remote_version" != "$local_version" ]; then
           if dpkg --compare-versions "$remote_version" gt "$local_version"; then
             echo "should_update=true" >> $GITHUB_OUTPUT
           else
