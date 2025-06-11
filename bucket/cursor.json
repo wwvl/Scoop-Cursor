@@ -50,7 +50,7 @@
     ],
     "persist": "data",
     "checkver": {
-        "url": "https://api2.cursor.sh/updates/api/update/win32-x64/cursor/0.0.0/",
+        "url": "https://www.cursor.com/api/download?platform=win32-x64-user&releaseTrack=latest",
         "regex": "version\":\"([\\d.]+).*production/(?<Code>[\\w]+)/win32"
     },
     "autoupdate": {
