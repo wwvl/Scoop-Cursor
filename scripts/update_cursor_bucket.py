@@ -1,31 +1,22 @@
 import os
-import re
 import json
 import hashlib
 import requests
 import tempfile
 from pathlib import Path
+import subprocess
 
-# Define paths for data and bucket directories, and template/metadata files
-# These are relative to the script's parent directory
-# 定义 data 和 bucket 目录以及模板/元数据文件的路径，这些路径是相对于脚本父目录的
-data_dir = Path(__file__).parent.parent / "data"
+# 配置路径
 bucket_dir = Path(__file__).parent.parent / "bucket"
 template_path = bucket_dir / "template" / "cursor.template"
-latest_json_path = data_dir / "latest.json"
+cursor_json_path = bucket_dir / "cursor.json"
 
-API_URL = "https://api2.cursor.sh/updates/api/update/win32-x64/cursor/0.0.0/"
-
+# 远程 API
+API_URL = "https://www.cursor.com/api/download?platform=win32-x64-user&releaseTrack=latest"
 
 def download_and_sha256(url):
     """
-    Download a file from the given URL and calculate its sha256 hash.
-    从给定的 URL 下载文件并计算其 sha256 哈希值。
-
-    Args:
-        url (str): The URL to download.
-    Returns:
-        str: The sha256 hex digest.
+    下载文件并计算 sha256
     """
     with requests.get(url, stream=True) as r:
         r.raise_for_status()
@@ -40,131 +31,22 @@ def download_and_sha256(url):
     os.remove(temp_path)
     return sha256.hexdigest()
 
-
-def get_latest_info():
+def version_gt(v1, v2):
     """
-    Query the API to get the latest version and build hash.
-    查询 API 以获取最新版本和构建哈希。
-
-    Returns:
-        tuple: (version, build_hash)
+    判断 v1 > v2
     """
-    resp = requests.get(API_URL)
-    resp.raise_for_status()
-    data = resp.json()
-    version = data["version"]
-    url = data["url"]
-    # Extract build hash from the download URL (after 'production/')
-    # 从下载 URL（'production/' 之后）提取构建哈希
-    m = re.search(r"production/([0-9a-f]{40})/", url)
-    if not m:
-        raise Exception("Failed to extract build hash from url")
-    build = m.group(1)
-    return version, build
-
-
-def get_major_minor(version):
-    """
-    Get the major.minor part of a version string, e.g. '0.50.7' -> '0.50'.
-
-    Args:
-        version (str): The version string.
-    Returns:
-        str: The major.minor part.
-    """
-    parts = version.split(".")
-    return f"{parts[0]}.{parts[1]}"
-
-
-def update_data_json(version, build, x64_url, x64_sha, arm64_url, arm64_sha):
-    """
-    Update or create the data/{major.minor}.json file with the new version info.
-
-    Args:
-        version (str): Version string.
-        build (str): Build hash.
-        x64_url (str): x64 download URL.
-        x64_sha (str): x64 sha256.
-        arm64_url (str): arm64 download URL.
-        arm64_sha (str): arm64 sha256.
-    """
-    major_minor = get_major_minor(version)
-    data_json_path = data_dir / f"{major_minor}.json"
-    if data_json_path.exists():
-        with open(data_json_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-    else:
-        data = {}
-    # Insert the new version
-    new_entry = {
-        "x64": {"url": x64_url, "sha256": x64_sha},
-        "arm64": {"url": arm64_url, "sha256": arm64_sha},
-    }
-    data[version] = new_entry
-
-    # Sort all versions in descending order
-    def parse_version(v):
+    def parse(v):
         return [int(x) for x in v.split(".")]
+    return parse(v1) > parse(v2)
 
-    sorted_items = sorted(
-        data.items(), key=lambda item: parse_version(item[0]), reverse=True
-    )
-    sorted_data = {k: v for k, v in sorted_items}
-    with open(data_json_path, "w", encoding="utf-8") as f:
-        json.dump(sorted_data, f, indent=4, ensure_ascii=False)
-        f.write("\n")  # 保证文件末尾有换行符
-    print(f"Updated {data_json_path}")
-
-
-def update_latest_json(version, build, x64_url, x64_sha, arm64_url, arm64_sha):
-    """
-    Update the data/latest.json file with the latest version and build info.
-    用最新的版本和构建信息更新 data/latest.json 文件。
-
-    Args:
-        version (str): Version string.
-        build (str): Build hash.
-        x64_url (str): x64 download URL.
-        x64_sha (str): x64 sha256.
-        arm64_url (str): arm64 download URL.
-        arm64_sha (str): arm64 sha256.
-    """
-    latest = {
-        "version": version,
-        "build": build,
-        "releases": {
-            "x64": {"url": x64_url, "sha256": x64_sha},
-            "arm64": {"url": arm64_url, "sha256": arm64_sha},
-        },
-    }
-    with open(latest_json_path, "w", encoding="utf-8") as f:
-        json.dump(latest, f, indent=4, ensure_ascii=False)
-        f.write("\n")  # 保证文件末尾有换行符
-    print(f"Updated {latest_json_path}")
-
-
-def update_bucket(version, build, x64_url, x64_sha, arm64_url, arm64_sha):
-    """
-    Generate a new bucket/cursor-{version}.json file from the template.
-    根据模板生成新的 bucket/cursor-{version}.json 文件。
-
-    Args:
-        version (str): Version string.
-        build (str): Build hash.
-        x64_url (str): x64 download URL.
-        x64_sha (str): x64 sha256.
-        arm64_url (str): arm64 download URL.
-        arm64_sha (str): arm64 sha256.
-    """
+def update_bucket(version, x64_url, x64_sha, arm64_url, arm64_sha):
     with open(template_path, "r", encoding="utf-8") as f:
         template = json.load(f)
-    # Fill in version and download info
     template["version"] = version
     template["architecture"]["64bit"]["url"] = x64_url
     template["architecture"]["64bit"]["hash"] = x64_sha
     template["architecture"]["arm64"]["url"] = arm64_url
     template["architecture"]["arm64"]["hash"] = arm64_sha
-    # Update bin and shortcuts fields with the new version
     for i, item in enumerate(template["bin"]):
         if isinstance(item, list) and len(item) > 1:
             template["bin"][i][1] = f"cursor_{version}"
@@ -174,64 +56,70 @@ def update_bucket(version, build, x64_url, x64_sha, arm64_url, arm64_sha):
     out_path = bucket_dir / f"cursor-{version}.json"
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(template, f, indent=4, ensure_ascii=False)
-        f.write("\n")  # 保证文件末尾有换行符
+        f.write("\n")
     print(f"Generated {out_path}")
 
-
-def version_leq(v1, v2):
-    """
-    Compare two version strings (e.g. 0.50.7 <= 0.50.8).
-    比较两个版本字符串（例如 0.50.7 <= 0.50.8）。
-
-    Args:
-        v1 (str): Version string 1.
-        v2 (str): Version string 2.
-    Returns:
-        bool: True if v1 <= v2.
-    """
-
-    def parse(v):
-        return [int(x) for x in v.split(".")]
-
-    return parse(v1) <= parse(v2)
-
+def update_cursor_json(version, x64_url, x64_sha, arm64_url, arm64_sha):
+    with open(cursor_json_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    data["version"] = version
+    data["architecture"]["64bit"]["url"] = x64_url
+    data["architecture"]["64bit"]["hash"] = x64_sha
+    data["architecture"]["arm64"]["url"] = arm64_url
+    data["architecture"]["arm64"]["hash"] = arm64_sha
+    with open(cursor_json_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=4, ensure_ascii=False)
+        f.write("\n")
+    print(f"Updated {cursor_json_path}")
 
 def main():
-    """
-    Main workflow: check for updates, download, update data and bucket.
-    主流程：检查更新、下载、更新数据和 bucket 文件。
-    """
-    # 1. Get latest version and build hash from API
-    version, build = get_latest_info()
-    print(f"Latest version: {version}, build: {build}")
+    # 1. 获取远程 JSON
+    resp = requests.get(API_URL)
+    resp.raise_for_status()
+    remote = resp.json()
+    version = remote["version"]
+    commitSha = remote["commitSha"]
+    print(f"Remote version: {version}, commitSha: {commitSha}")
 
-    # 2. Compare with local latest.json
-    if latest_json_path.exists():
-        with open(latest_json_path, "r", encoding="utf-8") as f:
-            latest = json.load(f)
-        latest_version = latest.get("version")
-        if version_leq(version, latest_version):
-            print(
-                f"Already up-to-date or local version is newer (local: {latest_version}, remote: {version}), no update needed."
-            )
-            return
+    # 2. 获取本地 version
+    with open(cursor_json_path, "r", encoding="utf-8") as f:
+        local = json.load(f)
+    local_version = local["version"]
+    print(f"Local version: {local_version}")
 
-    # 3. Download installers and calculate sha256
-    x64_url = f"https://downloads.cursor.com/production/{build}/win32/x64/user-setup/CursorUserSetup-x64-{version}.exe"
-    arm64_url = f"https://downloads.cursor.com/production/{build}/win32/arm64/user-setup/CursorUserSetup-arm64-{version}.exe"
+    # 3. 比较版本
+    if not version_gt(version, local_version):
+        print(f"Already up-to-date or local version is newer (local: {local_version}, remote: {version}), no update needed.")
+        return
+
+    # 4. 下载并计算 sha256
+    x64_url = f"https://downloads.cursor.com/production/{commitSha}/win32/x64/user-setup/CursorUserSetup-x64-{version}.exe"
+    arm64_url = f"https://downloads.cursor.com/production/{commitSha}/win32/arm64/user-setup/CursorUserSetup-arm64-{version}.exe"
     print("Downloading x64...")
     x64_sha = download_and_sha256(x64_url)
     print("Downloading arm64...")
     arm64_sha = download_and_sha256(arm64_url)
 
-    # 4. Update data files
-    update_data_json(version, build, x64_url, x64_sha, arm64_url, arm64_sha)
-    update_latest_json(version, build, x64_url, x64_sha, arm64_url, arm64_sha)
+    # 5. 生成新 bucket/cursor-{version}.json
+    update_bucket(version, x64_url, x64_sha, arm64_url, arm64_sha)
+    # 6. 更新 bucket/cursor.json
+    update_cursor_json(version, x64_url, x64_sha, arm64_url, arm64_sha)
 
-    # 5. Update bucket file
-    update_bucket(version, build, x64_url, x64_sha, arm64_url, arm64_sha)
-    print("All done.")
-
+    # 7. git add/commit/push
+    try:
+        subprocess.run(["git", "config", "user.name", "github-actions[bot]"], check=True)
+        subprocess.run(["git", "config", "user.email", "github-actions[bot]@users.noreply.github.com"], check=True)
+        subprocess.run(["git", "add", "."], check=True)
+        subprocess.run(["git", "commit", "-m", f"chore: add cursor {version}.{commitSha}"], check=True)
+        # 这里 GITHUB_REF 需在 CI 环境变量中，手动运行可注释掉 push
+        github_ref = os.environ.get("GITHUB_REF")
+        if github_ref:
+            branch = github_ref.replace("refs/heads/", "")
+            subprocess.run(["git", "push", "origin", branch], check=True)
+        else:
+            print("[Warn] GITHUB_REF not set, skip git push.")
+    except Exception as e:
+        print(f"[Warn] git commit/push failed: {e}")
 
 if __name__ == "__main__":
     main()
