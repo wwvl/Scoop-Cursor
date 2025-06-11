@@ -60,6 +60,11 @@ jobs:
     if: ${{ needs.update-cursor.outputs.has_changes == 'true' }}
     steps:
       - uses: actions/checkout@main
+      # - name: Excavate
+      #   uses: ScoopInstaller/GithubActions@main
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #     SKIP_UPDATED: 1
 
       - name: Excavate
         run: |
