@@ -81,16 +81,16 @@ def main():
     commitSha = remote["commitSha"]
     print(f"Remote version: {version}, commitSha: {commitSha}")
 
-    # 2. 获取本地 version
-    with open(cursor_json_path, "r", encoding="utf-8") as f:
-        local = json.load(f)
-    local_version = local["version"]
-    print(f"Local version: {local_version}")
+    # # 2. 获取本地 version
+    # with open(cursor_json_path, "r", encoding="utf-8") as f:
+    #     local = json.load(f)
+    # local_version = local["version"]
+    # print(f"Local version: {local_version}")
 
-    # 3. 比较版本
-    if not version_gt(version, local_version):
-        print(f"Already up-to-date or local version is newer (local: {local_version}, remote: {version}), no update needed.")
-        return
+    # # 3. 比较版本
+    # if not version_gt(version, local_version):
+    #     print(f"Already up-to-date or local version is newer (local: {local_version}, remote: {version}), no update needed.")
+    #     return
 
     # 4. 下载并计算 sha256
     x64_url = f"https://downloads.cursor.com/production/{commitSha}/win32/x64/user-setup/CursorUserSetup-x64-{version}.exe"
@@ -105,21 +105,21 @@ def main():
     # 6. 更新 bucket/cursor.json
     update_cursor_json(version, x64_url, x64_sha, arm64_url, arm64_sha)
 
-    # 7. git add/commit/push
-    try:
-        subprocess.run(["git", "config", "user.name", "github-actions[bot]"], check=True)
-        subprocess.run(["git", "config", "user.email", "github-actions[bot]@users.noreply.github.com"], check=True)
-        subprocess.run(["git", "add", "."], check=True)
-        subprocess.run(["git", "commit", "-m", f"chore: add cursor {version}.{commitSha}"], check=True)
-        # 这里 GITHUB_REF 需在 CI 环境变量中，手动运行可注释掉 push
-        github_ref = os.environ.get("GITHUB_REF")
-        if github_ref:
-            branch = github_ref.replace("refs/heads/", "")
-            subprocess.run(["git", "push", "origin", branch], check=True)
-        else:
-            print("[Warn] GITHUB_REF not set, skip git push.")
-    except Exception as e:
-        print(f"[Warn] git commit/push failed: {e}")
+    # # 7. git add/commit/push
+    # try:
+    #     subprocess.run(["git", "config", "user.name", "github-actions[bot]"], check=True)
+    #     subprocess.run(["git", "config", "user.email", "github-actions[bot]@users.noreply.github.com"], check=True)
+    #     subprocess.run(["git", "add", "."], check=True)
+    #     subprocess.run(["git", "commit", "-m", f"chore: add cursor {version}.{commitSha}"], check=True)
+    #     # 这里 GITHUB_REF 需在 CI 环境变量中，手动运行可注释掉 push
+    #     github_ref = os.environ.get("GITHUB_REF")
+    #     if github_ref:
+    #         branch = github_ref.replace("refs/heads/", "")
+    #         subprocess.run(["git", "push", "origin", branch], check=True)
+    #     else:
+    #         print("[Warn] GITHUB_REF not set, skip git push.")
+    # except Exception as e:
+    #     print(f"[Warn] git commit/push failed: {e}")
 
 if __name__ == "__main__":
     main()
