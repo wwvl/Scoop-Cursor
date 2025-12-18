@@ -37,30 +37,16 @@
     "bin": [
         [
             "resources\\app\\bin\\cursor.cmd",
-            "",
+            "cursor_2.2.35",
             "--user-data-dir=\"$dir\\data\\user-data\" --extensions-dir=\"$dir\\data\\extensions\""
         ]
     ],
     "shortcuts": [
         [
             "Cursor.exe",
-            "Cursor",
+            "Cursor 2.2.35",
             "--user-data-dir=\"$dir\\data\\user-data\" --extensions-dir=\"$dir\\data\\extensions\""
         ]
     ],
-    "persist": "data",
-    "checkver": {
-        "url": "https://www.cursor.com/api/download?platform=win32-x64-user&releaseTrack=latest",
-        "regex": "version\":\"([\\d.]+).*production/(?<Code>[\\w]+)/win32"
-    },
-    "autoupdate": {
-        "architecture": {
-            "64bit": {
-                "url": "https://downloads.cursor.com/production/$matchCode/win32/x64/user-setup/CursorUserSetup-x64-$version.exe"
-            },
-            "arm64": {
-                "url": "https://downloads.cursor.com/production/$matchCode/win32/arm64/user-setup/CursorUserSetup-arm64-$version.exe"
-            }
-        }
-    }
+    "persist": "data"
 }
